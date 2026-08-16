@@ -1,68 +1,97 @@
 # marketing-bench
 
-An open evaluation benchmark for marketing AI tasks.
+An open evaluation suite for marketing tasks. Medicine has HealthBench,
+48,562 rubric criteria written by 262 physicians. Law has LegalBench-RAG,
+6,858 expert-annotated pairs. Marketing had nothing comparable, so this
+exists.
 
-Part of the gloofy project (gloofy.ai) by overads Inc.
+**Status: v0.9. Items and scoring code are complete and reproducible.**
+Frontier baselines are not yet run, and the repo stays private until they
+are, because a leaderboard carrying only its author's model is
+advertising rather than measurement.
 
-> **Status: skeleton. No test items exist yet. Nothing is scored yet.**
+## What it measures
 
-## Why this exists
+Five tasks a marketing tool actually runs at volume:
 
-Every serious professional domain has an open benchmark that lets you check
-a model's claims against expert-defined ground truth:
+| task | what it asks | how it is scored |
+|---|---|---|
+| `creative_tag` | tag an ad with hook, angle, persona, offer and funnel stage from a closed vocabulary | exact facet accuracy, vocabulary closure, strict JSON |
+| `lead_qualify` | band and score a lead, citing only signals present in the prompt | band accuracy, score within 15, JSON validity |
+| `ad_copy` | write platform-shaped copy that respects character limits | blind pairwise judging |
+| `metric_diagnosis` | read campaign metrics, name the problem and the highest-leverage action | blind pairwise judging |
+| `chat` | answer an open marketing question | blind pairwise judging |
 
-- Medicine has HealthBench: 48,562 rubric criteria written by 262 physicians.
-- Law has LegalBench-RAG: 6,858 expert-annotated pairs.
-- Marketing has nothing comparable.
+## Two exams, and why both ship
 
-Marketing is one of the largest discretionary spend categories in business,
-and the tools that serve it increasingly run on language models, yet there is
-no open, reproducible way to measure whether a model is actually good at
-marketing work. marketing-bench exists to fill that gap.
+**`tasks/exam-v1.jsonl`** (95 items) is the continuity series. It was
+frozen early and has never been edited, so scores stay comparable across
+every model and every date. It is not representative of the whole domain
+and does not claim to be.
 
-## Task categories
+**`tasks/exam-v2.jsonl`** (126 items) is the representative benchmark.
+Every item was authored fresh as an exam item, verified to have zero
+overlap with any training corpus, and stratified so each cell is
+separately measurable:
 
-Five initial tasks, chosen because they are high-volume jobs that real
-marketing tools run constantly, each with a well-defined output shape:
+- creative_tag: 10 each of awareness, consideration, decision, retention,
+  deliberately ambiguous, and hard boundary cases
+- lead_qualify: 12 each of should-be-hot, should-be-warm, should-be-cold
+- prose: 10 each of ad_copy, metric_diagnosis and chat
 
-| task | what it measures |
-|---|---|
-| `creative_tag` | Closed-vocabulary ad tagging: hook, angle, persona, offer, funnel stage from ad copy |
-| `ad_copy` | Platform-constrained generation: headline, primary text, CTA within platform character limits |
-| `metric_diagnosis` | Campaign metrics to diagnosis: what is wrong, the highest-leverage action, and the reasoning |
-| `lead_qualify` | Signal-cited lead scoring: score, band, and the specific signals that drove it |
-| `chat` | Open marketing QA: consistent, numerate, direct marketing conversation |
+Reporting both is the point. Benchmarks commonly swap their test set and
+publish only the new number, which destroys comparability and hides
+whether the model improved or the exam got easier.
 
-Each task lives in `tasks/<task_name>/` with its own README describing the
-planned item format and scoring approach.
+## Human ceilings, published per set
 
-## Design principles
+Labels come from three blind annotators with a majority required. Items
+without a majority are discarded rather than guessed.
 
-1. **Published before the model it was built alongside.** marketing-bench
-   ships before gloofy-1 is fine-tuned. The test sets are frozen first, so
-   the model cannot be tuned against them after the fact and baseline
-   numbers are recorded honestly.
-2. **Frontier models on the leaderboard, including where gloofy loses.**
-   A benchmark that only shows its sponsor winning is marketing, not
-   measurement. Baselines from frontier models are first-class results,
-   and losses are published alongside wins.
-3. **Broader than any one model.** The benchmark covers marketing work in
-   general, not the subset any particular model happens to be good at.
-   Task coverage is decided by what marketing tools actually need, not by
-   what gloofy-1 can do.
-4. **Reproducible by a stranger.** Frozen, versioned test sets plus public
-   scoring code in this repo. Anyone can rerun any claimed number without
-   asking permission or trusting us.
+| set | annotator agreement | reading |
+|---|---|---|
+| exam v1 tags | 0.954 | the practical ceiling for tagging |
+| exam v2 tags | 0.938 | stratified, so harder on average |
+| boundary leads | 0.871 | three careful humans disagree on one in eight |
 
-## Repository layout
+A model reaching 0.87 on boundary leads has hit human consistency, not a
+shortfall. A single project-wide ceiling would have hidden that.
 
+## Running it
+
+```bash
+python harness/score.py --exam v2 --adapter <path-or-omit-for-base>
 ```
-tasks/     one directory per task: item format, rubric, frozen test sets
-harness/   scoring code and evaluation runner
-results/   published, versioned results and leaderboard data
-docs/      methodology, versioning policy, contribution notes
+
+Mechanically scored tasks print per-stratum results. Prose is judged
+pairwise:
+
+```bash
+python harness/judge.py pairs A.jsonl B.jsonl --both-orders
+python harness/judge.py score verdicts.json
 ```
 
-## License
+**Both-order judging is mandatory.** Every item is presented twice, once
+each way, and a verdict counts only when the same answer wins both times.
+Anything that flips with position is discarded. The judge prompt is
+frozen and versioned inside `harness/judge.py`; changing it bumps the
+version.
 
-Apache 2.0. See [LICENSE](LICENSE).
+## Method notes, including the mistakes
+
+Published because benchmarks usually hide exactly this.
+
+1. **A frozen exam silently grew.** Hash-based splitting pulled fresh
+   data into what was supposed to be a fixed test set, which would have
+   made cross-round scores incomparable. Fixed by pinning ids to disk.
+2. **The first position-bias check was wrong.** It compared raw slot win
+   shares, which is confounded by which model landed in which slot. The
+   corrected check measures one model's win rate by position, and it then
+   flagged a bias that both-order judging proved was small-sample noise.
+3. **The first answer key was only 0.893 aligned with expert consensus.**
+   Twenty-two facets were re-keyed after a three-annotator study. An exam
+   is only as good as its labels, and these were not good at first.
+
+## Licence
+
+Apache 2.0. Copyright 2026 overads Inc.
