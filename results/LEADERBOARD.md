@@ -24,6 +24,26 @@ The untrained base scores zero because it does not perform the task at
 all: 3 to 4 percent vocabulary closure means it invents its own labels
 rather than using the required ones.
 
+## prose tasks, blind pairwise judging (exam v2)
+
+Every item presented twice, once in each order, three judges per
+presentation, majority per presentation, and an item counts only if the
+same answer wins both ways. Consistency was 30 of 30, so nothing was
+discarded.
+
+| task | gloofy-1-nano r7e vs untrained base |
+|---|---|
+| ad_copy | gloofy 7 of 10 |
+| chat | gloofy 7 of 10 |
+| metric_diagnosis | base 8 of 10 |
+| overall | gloofy 16 of 30 (53%) |
+
+**Caveat that matters:** the model measured here predates the training
+round that added mandatory computation blocks for numeric answers.
+Campaign diagnosis is lost on arithmetic errors, which is exactly what
+that round targeted, so this row should be read as a pre-fix baseline
+and will be re-measured.
+
 ## What these numbers actually say
 
 **Claude is far more accurate than gloofy, and pretending otherwise
