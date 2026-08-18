@@ -1,24 +1,37 @@
 # marketing-bench leaderboard
 
-Measured 17 August 2026. Every number is reproducible with the harness
+Measured 19 August 2026. Every number is reproducible with the harness
 in this repo. Frontier entries beyond Claude are pending API keys.
+
+Exams v2.1 and v3.1 correct a documented answer-key drift and a
+coverage gap; the original v2 and v3 keys ship unchanged alongside
+them. See TAXONOMY.md and the drift note below. Claude's entries were
+measured on v2/v3 and are re-sat on the corrected exams next baseline
+run.
 
 ## creative_tag, exact facet accuracy
 
-| model | exam v2 (synthetic, stratified) | exam v3 (REAL ads) |
+| model | exam v2 (synthetic) | exam v2.1 (re-keyed) | exam v3 (110 REAL ads) | exam v3.1 (150 REAL ads) |
+|---|---|---|---|---|
+| human ceiling (3 blind annotators) | 0.938 | 0.933 on re-keyed items | 0.911 | 0.92 on new items |
+| **Claude** | **0.860** | pending | **0.904** | pending |
+| gloofy-1-nano r14 (4B, tag specialist) | 0.680 | 0.710 | 0.770 | 0.770 |
+| gloofy-1-nano r7e (1.7B, retired entry) | 0.710 | | 0.600 | |
+| Qwen3 base untrained | 0.000 | 0.000 | 0.000 | 0.000 |
+
+gloofy's real-ad score improved from 0.600 to 0.770 across rounds 8 to
+14 (real ads in training, specialist adapters, a measured scaling curve
+that chose 4B, and a targeted round of mood-led real ads). The gap to
+Claude remains large and is stated plainly below.
+
+## lead_qualify (exam v2)
+
+| model | band | score within 15 |
 |---|---|---|
-| human ceiling (3 blind annotators) | 0.938 | 0.911 |
-| **Claude** | **0.860** | **0.904** |
-| gloofy-1-nano r7e (1.7B) | 0.710 | 0.600 |
-| Qwen3-1.7B untrained | 0.000 | 0.000 |
-
-## lead_qualify, band accuracy (exam v2)
-
-| model | band |
-|---|---|
-| Claude | 0.972 |
-| gloofy-1-nano r7e | 0.720 |
-| Qwen3-1.7B untrained | 0.000 |
+| Claude | 0.972 | |
+| gloofy-1-nano r14 (4B, lead specialist) | 0.830 | 0.810 |
+| gloofy-1-nano r7e (retired entry) | 0.720 | |
+| Qwen3 base untrained | 0.000 | 0.000 |
 
 The untrained base scores zero because it does not perform the task at
 all: 3 to 4 percent vocabulary closure means it invents its own labels
@@ -48,9 +61,19 @@ and will be re-measured.
 
 **Claude is far more accurate than gloofy, and pretending otherwise
 would be dishonest.** On real ads Claude sits at 0.904 against a human
-ceiling of 0.911, which is effectively human-level. gloofy-1-nano, at
-1.7 billion parameters, scores 0.600. A model 1/500th the size does not
-match a frontier model on judgment, and the gap is not close.
+ceiling of 0.911, which is effectively human-level. gloofy-1-nano, at 4
+billion parameters, scores 0.770. A model a fraction of the size does
+not match a frontier model on judgment, and the gap is not close. What
+gloofy offers instead is stated on the site: zero marginal cost, local
+inference, and calibrated honesty about exactly this gap.
+
+**A drift note every benchmark should have to write.** Between rounds
+our labelling rules improved (documented in TAXONOMY.md, versioned).
+One stratum's answer key silently predated the change, and the model
+was being marked wrong for agreeing with current annotators: the same
+model scored 0.46 on the stale key and 0.64 on the re-keyed one. Both
+keys ship. Benchmarks that quietly update their answers are worthless,
+and benchmarks that never re-examine their keys are quietly wrong.
 
 **Claude scores HIGHER on real ads (0.904) than on our synthetic exam
 (0.860).** That is worth publishing loudly, because it means our
