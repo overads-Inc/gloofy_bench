@@ -19,11 +19,28 @@ graded by `harness/score_dump.py` so all rows share one code path.
 | annotator agreement ceiling (3 blind Claude agents) | **0.911** | | | | | |
 | Gemini 3.6 Flash | **0.817** | 0.807 | 0.740 | 0.913 | 0.927 | 0.700 |
 | GPT-5.5 | **0.792** | 0.660 | 0.773 | 0.920 | 0.940 | 0.667 |
-| gloofy-1-nano (4B) | 0.745 | | | | | |
+| gloofy-1-nano (4B), shared spec | **0.675** | 0.460 | 0.553 | 0.867 | 0.867 | 0.627 |
+| gloofy-1-nano (4B), its own trained prompt | 0.745 | | | | | |
 | Qwen3-4B untrained | 0.000 | | | | | |
 | Claude (self-agreement caveat, see below) | **0.916** | 0.887 | 0.893 | 0.953 | 0.987 | 0.860 |
 
-**Every other model beats gloofy.** Published as measured.
+**Every other model beats gloofy, and by more than we thought.**
+Published as measured.
+
+**gloofy is prompt-dependent, which we did not know until this run.**
+Given the same specification every other model receives, it scores
+0.675. Given the system prompt it was fine-tuned on, it scores 0.745.
+The like-for-like number is the lower one, and it is the one to compare
+against 0.817 and 0.792.
+
+That 7-point gap is a finding about fine-tuning, not a footnote: some of
+what training bought was familiarity with one prompt format rather than
+transferable judgment. Its vocabulary discipline slips too, from 1.000
+to 0.983, so under an unfamiliar prompt it occasionally invents a label,
+which it never does otherwise. Both numbers stay in the table because
+both are true and they answer different questions: 0.745 is what you get
+deploying it as intended, 0.675 is what it knows independent of how it
+was asked.
 
 **Two disclosures that change how the top row reads.** The ceiling is
 not human: it is the agreement rate of three blind Claude agents, and
