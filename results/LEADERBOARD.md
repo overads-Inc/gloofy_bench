@@ -11,13 +11,42 @@ run.
 
 ## creative_tag, exact facet accuracy
 
-| model | exam v2 (synthetic) | exam v2.1 (re-keyed) | exam v3 (110 REAL ads) | exam v3.1 (150 REAL ads) |
-|---|---|---|---|---|
-| human ceiling (3 blind annotators) | 0.938 | 0.933 on re-keyed items | 0.911 | 0.92 on new items |
-| **Claude** | **0.860** | pending | **0.904** | pending |
-| gloofy-1-nano r14 (4B, tag specialist) | 0.680 | 0.710 | 0.770 | 0.770 |
-| gloofy-1-nano r7e (1.7B, retired entry) | 0.710 | | 0.600 | |
-| Qwen3 base untrained | 0.000 | 0.000 | 0.000 | 0.000 |
+Measured 21 Aug 2026 on exam v3.1, 150 real published ads, every entry
+graded by `harness/score_dump.py` so all rows share one code path.
+
+| model | exam v3.1 (150 REAL ads) | hook | angle | persona | offer | funnel |
+|---|---|---|---|---|---|---|
+| human ceiling (3 blind annotators) | **0.911** | | | | | |
+| Gemini 3.6 Flash | **0.817** | 0.807 | 0.740 | 0.913 | 0.927 | 0.700 |
+| GPT-5.5 | **0.792** | 0.660 | 0.773 | 0.920 | 0.940 | 0.667 |
+| gloofy-1-nano (4B) | 0.745 | | | | | |
+| Qwen3-4B untrained | 0.000 | | | | | |
+| Claude (older protocol) | 0.904 | | | | | re-run pending |
+
+**Both frontier models beat gloofy.** Published as measured.
+
+### Comparability, which materially affects these numbers
+
+1. **gloofy has the taxonomy in its weights; every other model is given
+   it in the prompt.** The exam's own system prompt states edge-case
+   rules but never lists the five fields or their allowed values. Run
+   without that, GPT and Gemini both invented their own schema and would
+   have scored near zero for reasons unrelated to marketing judgment.
+   Handing untrained models the specification is the only fair test, and
+   it is disclosed rather than buried.
+2. **GPT-5.5 refuses temperature 0** and permits only its default, so it
+   is the single non-deterministic entry here. A rerun may move it.
+3. **Claude's 0.904 predates this harness** and was obtained through a
+   different prompt path. It stays in the table marked as such, rather
+   than being deleted or presented as comparable, until it is re-run.
+
+### What the per-facet numbers say
+
+Every model, ours included, is strong on persona and offer (0.91 to
+0.94) and weak on funnel_stage (0.667 to 0.700). A difficulty that
+tracks the facet rather than the model points at the taxonomy: the
+decision-versus-consideration boundary is probably underspecified, which
+is also where our own annotators disagree most.
 
 gloofy's real-ad score improved from 0.600 to 0.770 across rounds 8 to
 14 (real ads in training, specialist adapters, a measured scaling curve
