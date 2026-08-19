@@ -16,14 +16,23 @@ graded by `harness/score_dump.py` so all rows share one code path.
 
 | model | exam v3.1 (150 REAL ads) | hook | angle | persona | offer | funnel |
 |---|---|---|---|---|---|---|
-| human ceiling (3 blind annotators) | **0.911** | | | | | |
+| annotator agreement ceiling (3 blind Claude agents) | **0.911** | | | | | |
 | Gemini 3.6 Flash | **0.817** | 0.807 | 0.740 | 0.913 | 0.927 | 0.700 |
 | GPT-5.5 | **0.792** | 0.660 | 0.773 | 0.920 | 0.940 | 0.667 |
 | gloofy-1-nano (4B) | 0.745 | | | | | |
 | Qwen3-4B untrained | 0.000 | | | | | |
-| Claude (older protocol) | 0.904 | | | | | re-run pending |
+| Claude (self-agreement caveat, see below) | **0.916** | 0.887 | 0.893 | 0.953 | 0.987 | 0.860 |
 
-**Both frontier models beat gloofy.** Published as measured.
+**Every other model beats gloofy.** Published as measured.
+
+**Two disclosures that change how the top row reads.** The ceiling is
+not human: it is the agreement rate of three blind Claude agents, and
+earlier versions of these files wrongly called it a "human ceiling".
+And because the answer key comes from those same agents, **Claude is
+graded against a key its own model family produced**, a self-agreement
+advantage no other entry has. That is the most plausible reason it
+scores above the ceiling at all, and it means the true gap between
+Claude and GPT or Gemini is narrower than this table shows.
 
 ### Comparability, which materially affects these numbers
 
@@ -36,9 +45,10 @@ graded by `harness/score_dump.py` so all rows share one code path.
    it is disclosed rather than buried.
 2. **GPT-5.5 refuses temperature 0** and permits only its default, so it
    is the single non-deterministic entry here. A rerun may move it.
-3. **Claude's 0.904 predates this harness** and was obtained through a
-   different prompt path. It stays in the table marked as such, rather
-   than being deleted or presented as comparable, until it is re-run.
+3. **Claude was re-run through this harness** with the identical
+   specification and scorer, over the agent transport rather than plain
+   HTTP. It scores 0.916, above the annotator ceiling, which is exactly
+   what a self-agreement advantage predicts.
 
 ### What the per-facet numbers say
 
@@ -89,8 +99,8 @@ and will be re-measured.
 ## What these numbers actually say
 
 **Claude is far more accurate than gloofy, and pretending otherwise
-would be dishonest.** On real ads Claude sits at 0.904 against a human
-ceiling of 0.911, which is effectively human-level. gloofy-1-nano, at 4
+would be dishonest.** On real ads Claude sits at 0.916 against an
+annotator ceiling of 0.911. gloofy-1-nano, at 4
 billion parameters, scores 0.770. A model a fraction of the size does
 not match a frontier model on judgment, and the gap is not close. What
 gloofy offers instead is stated on the site: zero marginal cost, local
@@ -140,6 +150,6 @@ things, each measurable:
    which the frontier baseline does not.
 
 If your task is tagging a thousand ads a day and you can accept 0.60
-against a human ceiling of 0.911, gloofy is free forever and yours. If
+against an annotator ceiling of 0.911, gloofy is free forever and yours. If
 you need 0.90, use Claude and pay for it. Publishing both numbers is the
 point of this benchmark.

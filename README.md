@@ -45,6 +45,19 @@ whether the model improved or the exam got easier.
 
 ## Human ceilings, published per set
 
+**What the annotators are, stated plainly:** three independent Claude
+agents, each shown the item alone with the taxonomy and no sight of the
+others' answers, with a majority required. They are NOT human. Earlier
+versions of this file called the resulting figure a "human ceiling",
+which was wrong, and it has been corrected throughout.
+
+This has a consequence for the leaderboard that we have to state
+ourselves: **Claude's entry is graded against a key its own model family
+produced.** That is a self-agreement advantage no other entry gets, and
+it is the most likely explanation for Claude scoring above the ceiling.
+Read its number with that in mind, and read the gap between it and GPT
+or Gemini as smaller than it appears.
+
 Labels come from three blind annotators with a majority required. Items
 without a majority are discarded rather than guessed.
 
@@ -52,9 +65,9 @@ without a majority are discarded rather than guessed.
 |---|---|---|
 | exam v1 tags | 0.954 | the practical ceiling for tagging |
 | exam v2 tags | 0.938 | stratified, so harder on average |
-| boundary leads | 0.871 | three careful humans disagree on one in eight |
+| boundary leads | 0.871 | three blind annotators disagree on one in eight |
 
-A model reaching 0.87 on boundary leads has hit human consistency, not a
+A model reaching 0.87 on boundary leads has hit annotator consistency, not a
 shortfall. A single project-wide ceiling would have hidden that.
 
 ## Running it
