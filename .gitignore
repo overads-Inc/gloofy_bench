@@ -2,3 +2,9 @@
 .venv/
 __pycache__/
 *.pyc
+
+# Ad copy belongs to the brands that wrote it. The public exams ship as
+# references plus labels; assemble locally with harness/assemble.py.
+tasks/exam-v3.jsonl
+tasks/exam-v3.1.jsonl
+private/

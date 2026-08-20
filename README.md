@@ -54,10 +54,27 @@ frozen early and has never been edited, so scores stay comparable across
 every model and every date. It is not representative of the whole domain
 and does not claim to be.
 
-**`tasks/exam-v3.1.jsonl`** (150 items) is the one to use. Every item is
-a REAL published ad, collected verbatim from the Meta Ad Library and
-brand galleries, so it measures the job rather than our idea of the job.
-Its predecessor `exam-v3.jsonl` (110 items) is kept for continuity.
+**`tasks/exam-v3.1.refs.jsonl`** (150 items) is the one to use. Every
+item is a REAL published ad from the Meta Ad Library, so it measures the
+job rather than our idea of the job. Its predecessor
+`exam-v3.refs.jsonl` (110 items) is kept for continuity.
+
+**These ship as references, not as ad copy, and that is deliberate.**
+Each row carries the labels, the stratum, the Ad Library URL and a
+SHA-256 of the exact text we labelled. It does not carry the text. The
+copy belongs to the 988 brands that wrote it, and a benchmark has no
+business relicensing other companies' creative work under its own terms.
+
+Reproducibility is unaffected. Fetch the copy from the URLs, then:
+
+    uv run python harness/assemble.py tasks/exam-v3.1.refs.jsonl copy.json \
+        --out tasks/exam-v3.1.jsonl
+
+The assembler verifies every item against its recorded hash and DROPS
+any that does not match, because an exam scored against copy that
+differs from what was labelled is a different exam and its numbers are
+not comparable to anyone else's. A round-trip from the original copy
+rebuilds all 150 items byte-identically.
 
 **`tasks/exam-v2.1.jsonl`** (126 items) re-keys one stratum of v2 under
 taxonomy v2.1 after we found our labelling rules had improved and the
