@@ -132,10 +132,28 @@ def ask_anthropic(model: str, system: str, user: str, key: str) -> str:
     return "".join(b.get("text", "") for b in data["content"])
 
 
+def ask_local(base_url: str, model: str, system: str, user: str) -> str:
+    """Score any OpenAI-compatible endpoint, which llama-server, vLLM, Ollama
+    and LM Studio all expose. This is how a GGUF gets measured through the
+    identical path the hosted models take: same prompt, same scorer, no
+    special case for the model that happens to be ours."""
+    data = post(
+        base_url,
+        {"model": model, "temperature": 0,
+         "messages": [{"role": "system", "content": system},
+                      {"role": "user", "content": user}]},
+        {},
+    )
+    return data["choices"][0]["message"]["content"]
+
+
 def main() -> None:
     load_env()
     p = argparse.ArgumentParser()
-    p.add_argument("--provider", required=True, choices=["openai", "google", "anthropic"])
+    p.add_argument("--provider", required=True, choices=["openai", "google", "anthropic", "local"])
+    p.add_argument("--base-url", default=None,
+                   help="OpenAI-compatible endpoint, for scoring a local model. "
+                        "With llama-server: http://127.0.0.1:8080/v1/chat/completions")
     p.add_argument("--model", required=True, help="e.g. gpt-5.5 or gemini-3.6-flash")
     p.add_argument("--exam", required=True)
     p.add_argument("--out", required=True)
@@ -147,9 +165,16 @@ def main() -> None:
                    help="use the exam file's own system prompt verbatim")
     args = p.parse_args()
 
-    env_var = {"openai": "OPENAI_API_KEY", "google": "GOOGLE_API_KEY",
-               "anthropic": "ANTHROPIC_API_KEY"}[args.provider]
-    key = os.environ.get(env_var)
+    if args.provider == "local":
+        if not args.base_url:
+            raise SystemExit("--provider local needs --base-url, e.g.\n"
+                             "  llama-server -m model.gguf --port 8080\n"
+                             "  --base-url http://127.0.0.1:8080/v1/chat/completions")
+        key = "not-needed"
+    else:
+        env_var = {"openai": "OPENAI_API_KEY", "google": "GOOGLE_API_KEY",
+                   "anthropic": "ANTHROPIC_API_KEY"}[args.provider]
+        key = os.environ.get(env_var)
     if not key:
         raise SystemExit(
             f"{env_var} is not set.\n"
@@ -171,8 +196,11 @@ def main() -> None:
             user = next(m for m in msgs if m["role"] == "user")["content"]
             expected = msgs[2]["content"] if len(msgs) > 2 else None
 
-            got = {"openai": ask_openai, "google": ask_google,
-                   "anthropic": ask_anthropic}[args.provider](args.model, system, user, key)
+            if args.provider == "local":
+                got = ask_local(args.base_url, args.model, system, user)
+            else:
+                got = {"openai": ask_openai, "google": ask_google,
+                       "anthropic": ask_anthropic}[args.provider](args.model, system, user, key)
             fh.write(json.dumps({"id": row.get("id"), "task": row.get("task"),
                                  "prompt": user, "expected": expected, "got": got}) + "\n")
             fh.flush()

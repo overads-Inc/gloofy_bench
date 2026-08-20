@@ -111,7 +111,54 @@ discarded.
 round that added mandatory computation blocks for numeric answers.
 Campaign diagnosis is lost on arithmetic errors, which is exactly what
 that round targeted, so this row should be read as a pre-fix baseline
-and will be re-measured.
+and will be re-measured. That re-measurement has since been done on
+campaign_setup and is in the table below; the base won there too.
+
+## Base versus fine-tune, across five families
+
+The single most useful result in this repository argues against the
+premise of building a fine-tune at all. Every task family was evaluated
+against the untrained base model it was built from, on exams repaired
+after a contamination bug (see the retraction notes). The base won four
+of five.
+
+| family | measure | tuned | base | winner |
+|---|---|---|---|---|
+| captions | length discipline | 0.83 | **0.89** | base |
+| campaign_setup | names local currency | 0.34 | **0.76** | base |
+| campaign_setup | shows the arithmetic | 0.02 | **0.09** | base |
+| campaign_setup | degenerates into repetition | 0.19 | **0.00** | base |
+| image_brief | encodes Meta 9:16 safe zones | 5/10 | **9/10** | base |
+| metric_diagnosis | blind pairwise, both orders | 1 | **9** | base |
+| video_hook | blind pairwise, both orders | **36** | 9 | **gloofy** |
+
+The hook result is the only decisive win, and it is a real one:
+36-9, p=0.000033 under a two-sided sign test.
+
+### The rule
+
+**Fine-tuning wins where the knowledge is tacit and compression-shaped.
+It loses where the knowledge can simply be stated in the system prompt.**
+
+Meta's 9:16 safe zones are two numbers. A market's currency is a lookup.
+Platform character limits are a table. A capable base model applies
+facts it is told, and it can be corrected in seconds rather than
+retrained. Hooks won because no prompt can specify what makes six words
+land; that is pattern, and pattern is what examples are for.
+
+Training on stateable facts does not merely fail to help. It costs
+instruction-following, and the cost is visible: the campaign fine-tune
+repeats sentences verbatim in 17 of 88 answers where the base never
+does, and its median answer collapses from 1731 characters to 947. The
+image fine-tune echoes the brief back before answering and once wrote
+"engine growl audible" for a still image.
+
+Four of the five families therefore ship as the base model plus a task
+system prompt, with no adapter. That is a cheaper, faster and more
+correctable product than the one we set out to build, and we would not
+have known without measuring each family separately against its own
+base. Anyone distilling a small task model should run this comparison
+before shipping weights, and most published fine-tunes do not.
 
 ## What these numbers actually say
 
