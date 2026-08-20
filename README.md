@@ -5,14 +5,36 @@ An open evaluation suite for marketing tasks. Medicine has HealthBench,
 6,858 expert-annotated pairs. Marketing had nothing comparable, so this
 exists.
 
-**Status: v0.9. Items and scoring code are complete and reproducible.**
-Frontier baselines are not yet run, and the repo stays private until they
-are, because a leaderboard carrying only its author's model is
-advertising rather than measurement.
+**Status: v1.0, public, with four models measured.** Every entry was run
+through one harness with one specification and graded by one scorer,
+because a leaderboard whose rows were scored by different paths is not a
+leaderboard.
+
+| model | 150 real published ads |
+|---|---|
+| Claude | 0.916 |
+| annotator agreement ceiling | 0.911 |
+| Gemini 3.6 Flash | 0.817 |
+| GPT-5.5 | 0.792 |
+| gloofy-1-nano (4B, ours) | 0.780 |
+| Qwen3-4B untrained | 0.000 |
+
+**Our own model places fifth and we published it anyway.** That is the
+point of releasing the benchmark before the model: we could not tune the
+questions to suit our answers, because the questions were frozen and
+public first.
+
+Read [results/LEADERBOARD.md](results/LEADERBOARD.md) for the caveats
+that matter, including why Claude clears the ceiling (it is graded
+against a key its own model family wrote) and why gloofy's number is
+lower than an earlier one we reported (we found it was inflated by
+prompt familiarity and corrected it).
 
 ## What it measures
 
-Five tasks a marketing tool actually runs at volume:
+Five tasks a marketing tool actually runs at volume. `creative_tag` and
+`lead_qualify` are scored mechanically and are the load-bearing ones; the
+prose tasks are judged blind in both orders and reported separately.
 
 | task | what it asks | how it is scored |
 |---|---|---|
@@ -22,14 +44,29 @@ Five tasks a marketing tool actually runs at volume:
 | `metric_diagnosis` | read campaign metrics, name the problem and the highest-leverage action | blind pairwise judging |
 | `chat` | answer an open marketing question | blind pairwise judging |
 
-## Two exams, and why both ship
+## Five exams, and why every version ships
+
+587 items across five files. Nothing is ever deleted or quietly
+rewritten: when a key changes, both versions stay.
 
 **`tasks/exam-v1.jsonl`** (95 items) is the continuity series. It was
 frozen early and has never been edited, so scores stay comparable across
 every model and every date. It is not representative of the whole domain
 and does not claim to be.
 
-**`tasks/exam-v2.jsonl`** (126 items) is the representative benchmark.
+**`tasks/exam-v3.1.jsonl`** (150 items) is the one to use. Every item is
+a REAL published ad, collected verbatim from the Meta Ad Library and
+brand galleries, so it measures the job rather than our idea of the job.
+Its predecessor `exam-v3.jsonl` (110 items) is kept for continuity.
+
+**`tasks/exam-v2.1.jsonl`** (126 items) re-keys one stratum of v2 under
+taxonomy v2.1 after we found our labelling rules had improved and the
+answer key had never followed. The original `exam-v2.jsonl` ships
+unchanged beside it. The same model scores 0.46 on the old key and 0.64
+on the corrected one, which is exactly why both are here.
+
+**`tasks/exam-v2.jsonl`** (126 items) is the original stratified
+benchmark.
 Every item was authored fresh as an exam item, verified to have zero
 overlap with any training corpus, and stratified so each cell is
 separately measurable:
