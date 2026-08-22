@@ -21,8 +21,50 @@ graded by `harness/score_dump.py` so all rows share one code path.
 | GPT-5.5 | **0.792** | 0.660 | 0.773 | 0.920 | 0.940 | 0.667 |
 | gloofy-1-nano (4B), shared spec | **0.675** | 0.460 | 0.553 | 0.867 | 0.867 | 0.627 |
 | gloofy-1-nano (4B), its own trained prompt | 0.745 | | | | | |
-| Qwen3-4B untrained | 0.000 | | | | | |
+| Qwen3-4B untrained, **corrected** | **0.620** | | | | | |
+| ~~Qwen3-4B untrained, as first published~~ | ~~0.000~~ | | | | | |
 | Claude (self-agreement caveat, see below) | **0.916** | 0.887 | 0.893 | 0.953 | 0.987 | 0.860 |
+
+### Correction, 22 Aug 2026: the untrained base was scored unfairly
+
+The untrained base was published at 0.000, "does not perform the task at
+all". Re-measured on this same exam v3.1, through this same harness, given
+the **same shared specification every other row receives**, it scores
+**0.620** with json_valid 1.000 and in_vocab 1.000. It performs the task.
+
+The original 0.000 was measured *without* the specification while every
+rival was given it. That breaks the fairness rule this very document
+states four sections down: "handing untrained models the specification is
+the only fair test".
+
+**What it changes.** Fine-tuning appeared to be worth +0.675 over the
+untrained base. Like for like it is worth **+0.055** — which is exactly
+the seed-noise band we publish elsewhere, and therefore not a result we
+can claim at all from a single seed.
+
+**How it was caught.** Five other models were run through this harness on
+22 Aug while building a multi-model leaderboard. Mistral Large 3 scored
+0.785, landing between the GPT-5.5 and Gemini figures already in this
+table, which is evidence the harness agrees with the published one. The
+base model was measured in the same pass, and 0.620 did not match 0.000.
+
+**Not yet re-measured.** The lead_qualify table below still shows the base
+at 0.000, described as "3 to 4 percent vocabulary closure means it invents
+its own labels" — the exact signature of a model that was never given the
+taxonomy. It is likely the same error. It stays as published until it is
+actually measured, because replacing one unverified number with another
+guess is how this happened in the first place.
+
+Both rows are kept above, the retracted one struck through, because a
+benchmark that quietly swaps its answers is worthless.
+
+reproduce the corrected figure:
+  uv run python stage3/evaluate.py --exam v3.1 --task creative_tag --spec \
+    --base mlx-community/Qwen3-4B-4bit
+  # fields 0.62  in_vocab 1.00  json_valid 1.00  strict 1.00
+
+Drop `--spec` and it collapses to 0.04, which is the condition the 0.000
+came from. The flag is the whole difference.
 
 **Every other model beats gloofy, and by more than we thought.**
 Published as measured.
@@ -87,7 +129,7 @@ Claude remains large and is stated plainly below.
 | Claude | 0.972 | |
 | gloofy-1-nano r14 (4B, lead specialist) | 0.830 | 0.810 |
 | gloofy-1-nano r7e (retired entry) | 0.720 | |
-| Qwen3 base untrained | 0.000 | 0.000 |
+| Qwen3 base untrained (SUSPECT: see the 22 Aug correction; likely scored without the specification, not yet re-measured) | 0.000 | 0.000 |
 
 The untrained base scores zero because it does not perform the task at
 all: 3 to 4 percent vocabulary closure means it invents its own labels
